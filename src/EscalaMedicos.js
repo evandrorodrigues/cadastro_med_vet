@@ -60,7 +60,7 @@ export default function EscalaMedicos() {
     const dados = { medico, coordenacao, tipoPreenchimento, unidades, observacoes };
 
     try {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwgPGuTv_vG6G5CB-0mljHLOsAijcP4CV9bdlFmwgr-RTlhlJkgkxW9X9jkHDkf6P9e/exec", {
+      const response = await fetch("https://script.google.com/macros/s/AKfycbz3fQHbrBKsOtGrUZLrMNU9XLuhAa9Ws3mSm4qM_vk/dev", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dados),
