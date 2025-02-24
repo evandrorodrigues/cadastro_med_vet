@@ -58,7 +58,7 @@ const enviarDados = async () => {
   }
 
   try {
-    const resposta = await fetch("/api/salvarNoSnowflake", {
+    const resposta = await fetch("https://cadastro-med-muwsj0svj-evandros-projects-d18f2e46.vercel.app//api/salvarNoSnowflake", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ medico, coordenacao, tipoPreenchimento, unidades, observacoes })
