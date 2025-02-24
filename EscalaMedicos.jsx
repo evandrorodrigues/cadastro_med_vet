@@ -2,7 +2,7 @@ import { useState } from "react";
 import Select from "react-select";
 
 const unidadesLista = [
-  "DJBA-AM", "BNOC-BA", "PQSH-BA", "PRLA-BA", "ALDT-CE", "STDU-CE",
+  "DJBA-AM", "TQTP-AM", "BNOC-BA", "PQSH-BA", "PRLA-BA", "ALDT-CE", "STDU-CE",
   "WSOA-CE", "ASAN-DF", "BSIA-DF", "EPIA-DF", "GAMA-DF", "GBSL-DF", "PKSB-DF",
   "TGTG-DF", "W3NT-DF", "ECOM-SP", "SERR-ES", "VLVL-ES", "VTRA-ES"
 ];
@@ -51,30 +51,18 @@ export default function EscalaMedicos() {
     setUnidades(newUnidades);
   };
 
-const enviarDados = async () => {
-  if (!medico || !coordenacao || !tipoPreenchimento || unidades.length === 0) {
-    alert("Preencha todos os campos obrigatórios!");
-    return;
-  }
-
-  try {
-    const resposta = await fetch("https://cadastro-med-muwsj0svj-evandros-projects-d18f2e46.vercel.app//api/salvarNoSnowflake", {
+  const enviarDados = async () => {
+    if (!medico || !coordenacao || !tipoPreenchimento || unidades.length === 0) {
+      alert("Preencha todos os campos obrigatórios!");
+      return;
+    }
+    await fetch("https://seu-backend.onrender.com/api/enviar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ medico, coordenacao, tipoPreenchimento, unidades, observacoes })
     });
-
-    const dados = await resposta.json();
-    if (resposta.ok) {
-      alert("✅ Dados enviados com sucesso!");
-    } else {
-      alert("❌ Erro: " + dados.error);
-    }
-  } catch (erro) {
-    alert("❌ Falha ao enviar os dados!");
-  }
-};
-
+    alert("Dados enviados com sucesso!");
+  };
 
   return (
     <div className="flex flex-col items-center p-6">
@@ -147,3 +135,4 @@ const enviarDados = async () => {
     </div>
   );
 }
+
