@@ -1,90 +1,104 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Select from "react-select";
-import { format, isValid } from "date-fns";
+import { format, isValid, startOfToday } from "date-fns";
 
-const unidadesLista = [
+// Dados estáticos
+const UNIDADES = [
   "DJBA-AM", "TQTP-AM", "BNOC-BA", "PQSH-BA", "PRLA-BA", "ALDT-CE", "STDU-CE",
   "WSOA-CE", "ASAN-DF", "BSIA-DF", "EPIA-DF", "GAMA-DF", "GBSL-DF", "PKSB-DF",
   "TGTG-DF", "W3NT-DF", "ECOM-SP", "SERR-ES", "VLVL-ES", "VTRA-ES"
 ];
 
-const horariosLista = [
-  "09:00 às 15:00", "15:00 às 21:00", "14:00 às 20:00", "10:00 às 16:00",
-  "13:00 às 19:00", "10:00 às 18:00", "12:00 às 18:00"
+const HORARIOS = [
+  "09:00 às 15:00", "15:00 às 21:00", "14:00 às 20:00", 
+  "10:00 às 16:00", "13:00 às 19:00", "10:00 às 18:00", 
+  "12:00 às 18:00"
 ];
 
-const tipoSolicitacaoOptions = [
+const TIPOS_SOLICITACAO = [
   { label: "Cancelamento", value: "Cancelamento" },
   { label: "Alteração", value: "Alteração" },
   { label: "Disponibilidade", value: "Disponibilidade" },
   { label: "Justificativa", value: "Justificativa" }
 ];
 
+// Componente principal
 export default function EscalaMedicos() {
-  const [medico, setMedico] = useState("");
-  const [cnpj, setCnpj] = useState("");
-  const [coordenacao, setCoordenacao] = useState("");
-  const [tipoSolicitacao, setTipoSolicitacao] = useState("");
+  // Estados
+  const [formulario, setFormulario] = useState({
+    medico: "",
+    cnpj: "",
+    coordenacao: "",
+    tipoSolicitacao: "",
+    observacoes: ""
+  });
+  
   const [unidades, setUnidades] = useState([]);
-  const [observacoes, setObservacoes] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-  // Funções auxiliares
-  const getDataMinima = () => format(new Date(), "yyyy-MM-dd");
-  
-  const validarCNPJ = (cnpj) => /^\d{14}$/.test(cnpj.replace(/[^\d]/g, ''));
+  // Data mínima para seleção
+  const dataMinima = format(startOfToday(), "yyyy-MM-dd");
+
+  // Validação de CNPJ
+  const validarCNPJ = useCallback((cnpj) => {
+    const cnpjLimpo = cnpj.replace(/\D/g, '');
+    return cnpjLimpo.length === 14;
+  }, []);
 
   // Manipulação de unidades
-  const addUnidade = () => setUnidades([...unidades, { nome: "", dias: [] }]);
-  
-  const removeUnidade = (index) => 
-    setUnidades(unidades.filter((_, i) => i !== index));
-
-  const updateUnidade = (index, nome) => {
-    const newUnidades = [...unidades];
-    newUnidades[index].nome = nome;
-    setUnidades(newUnidades);
+  const manipularUnidade = {
+    adicionar: () => setUnidades([...unidades, { nome: "", dias: [] }]),
+    
+    remover: (index) => 
+      setUnidades(unidades.filter((_, i) => i !== index)),
+    
+    atualizar: (index, nome) => {
+      const novasUnidades = [...unidades];
+      novasUnidades[index].nome = nome;
+      setUnidades(novasUnidades);
+    }
   };
 
   // Manipulação de datas/horários
-  const addData = (uIndex) => {
-    const newUnidades = [...unidades];
-    newUnidades[uIndex].dias.push({ data: "", horario: "" });
-    setUnidades(newUnidades);
-  };
+  const manipularData = {
+    adicionar: (uIndex) => {
+      const novasUnidades = [...unidades];
+      novasUnidades[uIndex].dias.push({ data: "", horario: "" });
+      setUnidades(novasUnidades);
+    },
 
-  const removeData = (uIndex, dIndex) => {
-    const newUnidades = [...unidades];
-    newUnidades[uIndex].dias.splice(dIndex, 1);
-    setUnidades(newUnidades);
-  };
+    remover: (uIndex, dIndex) => {
+      const novasUnidades = [...unidades];
+      novasUnidades[uIndex].dias.splice(dIndex, 1);
+      setUnidades(novasUnidades);
+    },
 
-  const updateData = (uIndex, dIndex, field, value) => {
-    const newUnidades = [...unidades];
-    
-    if (field === "data") {
-      const dataSelecionada = new Date(value);
-      if (!isValid(dataSelecionada) || dataSelecionada < new Date()) {
-        alert("Selecione uma data futura!");
-        return;
+    atualizar: (uIndex, dIndex, campo, valor) => {
+      if (campo === "data") {
+        const data = new Date(valor);
+        if (!isValid(data) || data < startOfToday()) {
+          alert("Selecione uma data futura!");
+          return;
+        }
       }
+
+      const novasUnidades = [...unidades];
+      novasUnidades[uIndex].dias[dIndex][campo] = valor;
+      setUnidades(novasUnidades);
     }
-    
-    newUnidades[uIndex].dias[dIndex][field] = value;
-    setUnidades(newUnidades);
   };
 
   // Validação e envio
   const validarFormulario = () => {
-    const camposObrigatorios = !!medico && !!cnpj && !!coordenacao && !!tipoSolicitacao;
-    const cnpjValido = validarCNPJ(cnpj);
+    const camposObrigatorios = Object.values(formulario).every(Boolean);
+    const cnpjValido = validarCNPJ(formulario.cnpj);
     const unidadesValidas = unidades.every(u => 
       u.nome && u.dias.length > 0 && u.dias.every(d => d.data && d.horario)
     );
 
     if (!camposObrigatorios) alert("Preencha todos os campos obrigatórios!");
-    else if (!cnpjValido) alert("CNPJ inválido! Use 14 dígitos numéricos");
-    else if (!unidadesValidas) alert("Verifique as unidades e datas/horários!");
+    else if (!cnpjValido) alert("CNPJ inválido! Use 14 dígitos");
+    else if (!unidadesValidas) alert("Verifique unidades e datas!");
 
     return camposObrigatorios && cnpjValido && unidadesValidas;
   };
@@ -93,187 +107,203 @@ export default function EscalaMedicos() {
     if (!validarFormulario()) return;
 
     setEnviando(true);
-    
+
     try {
-      const response = await fetch("/api/salvarNoSnowflake", {
+      const resposta = await fetch("/api/salvarNoSnowflake", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          medico,
-          cnpj: cnpj.replace(/\D/g, ''),
-          coordenacao,
-          tipoSolicitacao,
-          unidades: unidades.map(u => ({
-            ...u,
-            dias: u.dias.map(d => ({ 
-              ...d, 
-              data: format(new Date(d.data), "dd/MM/yyyy") 
+          ...formulario,
+          cnpj: formulario.cnpj.replace(/\D/g, ''),
+          unidades: unidades.map(unidade => ({
+            ...unidade,
+            dias: unidade.dias.map(dia => ({
+              ...dia,
+              data: format(new Date(dia.data), "dd/MM/yyyy")
             }))
-          })),
-          observacoes
+          })
         })
       });
 
-      if (response.ok) {
-        alert("Dados salvos com sucesso!");
-        // Resetar formulário
-        setMedico("");
-        setCnpj("");
-        setCoordenacao("");
-        setTipoSolicitacao("");
-        setUnidades([]);
-        setObservacoes("");
-      } else {
-        throw new Error(await response.text());
-      }
-    } catch (error) {
-      alert(`Erro: ${error.message}`);
+      if (!resposta.ok) throw new Error(await resposta.text());
+      
+      alert("Dados salvos!");
+      setFormulario({
+        medico: "",
+        cnpj: "",
+        coordenacao: "",
+        tipoSolicitacao: "",
+        observacoes: ""
+      });
+      setUnidades([]);
+      
+    } catch (erro) {
+      alert(`Erro: ${erro.message}`);
     } finally {
       setEnviando(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6 text-blue-800">Controle de Escala Médica</h1>
+    <div className="container mx-auto p-4 max-w-3xl">
+      <header className="mb-8 text-center">
+        <h1 className="text-3xl font-bold text-blue-800">
+          Gestão de Escalas Médicas
+        </h1>
+      </header>
 
-      <div className="w-full space-y-4 bg-white p-6 rounded-lg shadow-md">
+      <main className="bg-white rounded-xl shadow-lg p-6">
         {/* Seção de Dados Cadastrais */}
-        <div className="space-y-3">
-          <input
-            type="text"
-            placeholder="Nome do Médico *"
-            value={medico}
-            onChange={(e) => setMedico(e.target.value)}
-            className="input-campo"
+        <section className="space-y-4 mb-8">
+          <InputTexto
+            label="Nome do Médico *"
+            value={formulario.medico}
+            onChange={(e) => setFormulario({...formulario, medico: e.target.value})}
           />
 
-          <input
-            type="text"
-            placeholder="CNPJ *"
-            value={cnpj}
-            onChange={(e) => setCnpj(e.target.value)}
-            className="input-campo"
-            inputMode="numeric"
+          <InputTexto
+            label="CNPJ *"
+            value={formulario.cnpj}
+            onChange={(e) => setFormulario({...formulario, cnpj: e.target.value})}
             maxLength={14}
+            inputMode="numeric"
+            placeholder="00.000.000/0000-00"
           />
 
-          <input
-            type="text"
-            placeholder="Coordenação *"
-            value={coordenacao}
-            onChange={(e) => setCoordenacao(e.target.value)}
-            className="input-campo"
+          <InputTexto
+            label="Coordenação *"
+            value={formulario.coordenacao}
+            onChange={(e) => setFormulario({...formulario, coordenacao: e.target.value})}
           />
 
           <Select
-            options={tipoSolicitacaoOptions}
-            onChange={(selected) => setTipoSolicitacao(selected.value)}
+            options={TIPOS_SOLICITACAO}
+            onChange={(selected) => setFormulario({...formulario, tipoSolicitacao: selected.value})}
             placeholder="Tipo de Solicitação *"
-            className="select-campo"
-            noOptionsMessage={() => "Nenhuma opção disponível"}
+            className="react-select-container"
+            classNamePrefix="react-select"
           />
-        </div>
+        </section>
 
         {/* Seção de Unidades */}
-        <div className="space-y-4 mt-6">
+        <section className="space-y-6">
           {unidades.map((unidade, uIndex) => (
-            <div key={uIndex} className="border rounded-md p-4 bg-gray-50">
-              <div className="flex gap-2 mb-3">
+            <div key={uIndex} className="bg-gray-50 p-4 rounded-lg border">
+              <div className="flex gap-2 mb-4">
                 <Select
-                  options={unidadesLista.map(u => ({ label: u, value: u }))}
-                  onChange={(selected) => updateUnidade(uIndex, selected.value)}
+                  options={UNIDADES.map(u => ({ label: u, value: u }))}
+                  onChange={(selected) => manipularUnidade.atualizar(uIndex, selected.value)}
                   placeholder="Selecione a Unidade *"
-                  className="flex-1"
+                  className="flex-1 react-select-container"
+                  classNamePrefix="react-select"
                 />
-                <button
-                  onClick={() => removeUnidade(uIndex)}
-                  className="btn-remover"
-                >
-                  Remover
-                </button>
+                <BotaoRemover onClick={() => manipularUnidade.remover(uIndex)} />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {unidade.dias.map((dia, dIndex) => (
                   <div key={dIndex} className="flex gap-2 items-center">
                     <input
                       type="date"
                       value={dia.data}
-                      min={getDataMinima()}
-                      onChange={(e) => updateData(uIndex, dIndex, "data", e.target.value)}
-                      className="input-data"
+                      min={dataMinima}
+                      onChange={(e) => manipularData.atualizar(uIndex, dIndex, "data", e.target.value)}
+                      className="input-date"
                     />
                     <Select
-                      options={horariosLista.map(h => ({ label: h, value: h }))}
-                      onChange={(selected) => updateData(uIndex, dIndex, "horario", selected.value)}
+                      options={HORARIOS.map(h => ({ label: h, value: h }))}
+                      onChange={(selected) => manipularData.atualizar(uIndex, dIndex, "horario", selected.value)}
                       placeholder="Horário *"
-                      className="flex-1"
+                      className="flex-1 react-select-container"
+                      classNamePrefix="react-select"
                     />
-                    <button
-                      onClick={() => removeData(uIndex, dIndex)}
-                      className="btn-remover-pequeno"
-                    >
-                      ×
-                    </button>
+                    <BotaoRemoverPequeno 
+                      onClick={() => manipularData.remover(uIndex, dIndex)} 
+                    />
                   </div>
                 ))}
-                <button
-                  onClick={() => addData(uIndex)}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  + Adicionar Data/Horário
-                </button>
+                <BotaoSecundario
+                  onClick={() => manipularData.adicionar(uIndex)}
+                  texto="+ Adicionar Data/Horário"
+                />
               </div>
             </div>
           ))}
 
-          <button
-            onClick={addUnidade}
-            className="btn-adicionar"
-          >
-            + Adicionar Nova Unidade
-          </button>
-        </div>
+          <BotaoPrimario
+            onClick={manipularUnidade.adicionar}
+            texto="+ Adicionar Nova Unidade"
+          />
+        </section>
 
         {/* Observações */}
         <textarea
           placeholder="Observações Adicionais"
-          value={observacoes}
-          onChange={(e) => setObservacoes(e.target.value)}
-          className="mt-4 p-2 w-full border rounded-md h-24 focus:ring-2 focus:ring-blue-300"
+          value={formulario.observacoes}
+          onChange={(e) => setFormulario({...formulario, observacoes: e.target.value})}
+          className="w-full mt-6 p-3 border rounded-lg focus:ring-2 focus:ring-blue-300 h-32"
         />
 
         {/* Botão de Envio */}
-        <button
+        <BotaoPrimario
           onClick={enviarDados}
           disabled={enviando}
-          className={`mt-6 w-full py-2 rounded-md font-medium transition-colors ${
-            enviando 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-green-600 hover:bg-green-700 text-white'
-          }`}
-        >
-          {enviando ? 'Salvando...' : 'Salvar Escala'}
-        </button>
-      </div>
+          texto={enviando ? 'Salvando...' : 'Salvar Escala'}
+          cor={enviando ? 'cinza' : 'verde'}
+          className="mt-8"
+        />
+      </main>
     </div>
   );
 }
 
-// Estilos CSS (se estiver usando CSS-in-JS)
-const styles = {
-  inputCampo: "w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300",
-  selectCampo: {
-    control: (base) => ({
-      ...base,
-      minHeight: '42px',
-      borderColor: '#e5e7eb',
-      '&:hover': { borderColor: '#93c5fd' }
-    })
-  },
-  btnAdicionar: "w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors",
-  btnRemover: "px-3 py-1 text-red-600 hover:text-red-800 bg-red-100 rounded-md",
-  btnRemoverPequeno: "px-2 text-red-500 hover:text-red-700",
-  inputData: "p-2 border rounded-md flex-1 focus:outline-none focus:ring-1 focus:ring-blue-300"
-};
+// Componentes auxiliares
+const InputTexto = ({ label, ...props }) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <input
+      className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-300"
+      {...props}
+    />
+  </div>
+);
+
+const BotaoPrimario = ({ texto, cor = 'verde', ...props }) => (
+  <button
+    className={`w-full py-2 px-4 rounded-md font-medium transition-colors ${
+      cor === 'verde' 
+        ? 'bg-green-600 hover:bg-green-700 text-white' 
+        : 'bg-gray-400 cursor-not-allowed'
+    } ${props.className || ''}`}
+    {...props}
+  >
+    {texto}
+  </button>
+);
+
+const BotaoSecundario = ({ texto, ...props }) => (
+  <button
+    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+    {...props}
+  >
+    {texto}
+  </button>
+);
+
+const BotaoRemover = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    className="px-3 py-1.5 text-red-600 hover:text-red-800 bg-red-100 rounded-md text-sm"
+  >
+    Remover
+  </button>
+);
+
+const BotaoRemoverPequeno = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    className="px-2 text-red-500 hover:text-red-700 text-lg"
+  >
+    ×
+  </button>
+);
