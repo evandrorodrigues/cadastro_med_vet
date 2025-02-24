@@ -52,17 +52,30 @@ export default function EscalaMedicos() {
   };
 
   const enviarDados = async () => {
-    if (!medico || !coordenacao || !tipoPreenchimento || unidades.length === 0) {
-      alert("Preencha todos os campos obrigatórios!");
-      return;
-    }
-    await fetch("https://seu-backend.onrender.com/api/enviar", {
+  if (!medico || !coordenacao || !tipoPreenchimento || unidades.length === 0) {
+    alert("Preencha todos os campos obrigatórios!");
+    return;
+  }
+
+  try {
+    const response = await fetch("https://cadastro-med-vet-git-main-evandros-projects-d18f2e46.vercel.app/api/salvarNoSnowflake", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ medico, coordenacao, tipoPreenchimento, unidades, observacoes })
+      body: JSON.stringify({ medico, coordenacao, tipoPreenchimento, unidades, observacoes }),
     });
-    alert("Dados enviados com sucesso!");
-  };
+
+    const result = await response.json();
+
+    if (response.ok) {
+      alert("Dados enviados com sucesso!");
+    } else {
+      alert("Erro ao enviar dados: " + result.error);
+    }
+  } catch (error) {
+    alert("Erro ao conectar com a API");
+  }
+};
+
 
   return (
     <div className="flex flex-col items-center p-6">
