@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/salvarNoSnowflake.js",
+      "use": "@vercel/node"
+    }
+  ]
+}
