@@ -56,24 +56,12 @@ export default function EscalaMedicos() {
       alert("Preencha todos os campos obrigatórios!");
       return;
     }
-
-    const dados = { medico, coordenacao, tipoPreenchimento, unidades, observacoes };
-
-    try {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwgPGuTv_vG6G5CB-0mljHLOsAijcP4CV9bdlFmwgr-RTlhlJkgkxW9X9jkHDkf6P9e/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dados),
-      });
-
-      if (response.ok) {
-        alert("Dados enviados com sucesso!");
-      } else {
-        alert("Erro ao enviar os dados.");
-      }
-    } catch (error) {
-      alert("Falha ao conectar com o servidor.");
-    }
+    await fetch("https://seu-backend.onrender.com/api/enviar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ medico, coordenacao, tipoPreenchimento, unidades, observacoes })
+    });
+    alert("Dados enviados com sucesso!");
   };
 
   return (
@@ -147,3 +135,4 @@ export default function EscalaMedicos() {
     </div>
   );
 }
+
