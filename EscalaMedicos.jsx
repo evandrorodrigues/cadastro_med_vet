@@ -51,18 +51,29 @@ export default function EscalaMedicos() {
     setUnidades(newUnidades);
   };
 
-  const enviarDados = async () => {
-    if (!medico || !coordenacao || !tipoPreenchimento || unidades.length === 0) {
-      alert("Preencha todos os campos obrigatórios!");
-      return;
-    }
-    await fetch("https://seu-backend.onrender.com/api/enviar", {
+const enviarDados = async () => {
+  if (!medico || !coordenacao || !tipoPreenchimento || unidades.length === 0) {
+    alert("Preencha todos os campos obrigatórios!");
+    return;
+  }
+
+  try {
+    const resposta = await fetch("https://cadastro-med-muwsj0svj-evandros-projects-d18f2e46.vercel.app//api/salvarNoSnowflake", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ medico, coordenacao, tipoPreenchimento, unidades, observacoes })
     });
-    alert("Dados enviados com sucesso!");
-  };
+
+    const dados = await resposta.json();
+    if (resposta.ok) {
+      alert("✅ Dados enviados com sucesso!");
+    } else {
+      alert("❌ Erro: " + dados.error);
+    }
+  } catch (erro) {
+    alert("❌ Falha ao enviar os dados!");
+  }
+};
 
   return (
     <div className="flex flex-col items-center p-6">
