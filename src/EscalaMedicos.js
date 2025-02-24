@@ -67,7 +67,7 @@ export default function EscalaMedicos() {
       });
 
       if (response.ok) {
-        alert("Dados enviados para o Google Sheets com sucesso!");
+        alert("Dados enviados com sucesso!");
       } else {
         alert("Erro ao enviar os dados.");
       }
