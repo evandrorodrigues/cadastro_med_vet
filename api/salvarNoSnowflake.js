@@ -7,12 +7,12 @@ export default async function handler(req, res) {
 
     // Configuração do Snowflake
     const connection = snowflake.createConnection({
-      account: "SEU_ACCOUNT",
-      username: "SEU_USUARIO",
-      password: "SUA_SENHA",
-      warehouse: "SEU_WAREHOUSE",
-      database: "SEU_DATABASE",
-      schema: "SEU_SCHEMA",
+      account: "DF05068",
+      username: "EVANDRO_CARVALHO",
+      password: "Naninho1305!!!",
+      warehouse: "SERES_WH",
+      database: "SERES",
+      schema: "DADOS_SERES",
     });
 
     connection.connect((err) => {
