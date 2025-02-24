@@ -56,12 +56,24 @@ export default function EscalaMedicos() {
       alert("Preencha todos os campos obrigatórios!");
       return;
     }
-    await fetch("https://seu-backend.onrender.com/api/enviar", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ medico, coordenacao, tipoPreenchimento, unidades, observacoes })
-    });
-    alert("Dados enviados com sucesso!");
+
+    const dados = { medico, coordenacao, tipoPreenchimento, unidades, observacoes };
+
+    try {
+      const response = await fetch("AKfycbwgPGuTv_vG6G5CB-0mljHLOsAijcP4CV9bdlFmwgr-RTlhlJkgkxW9X9jkHDkf6P9e", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dados),
+      });
+
+      if (response.ok) {
+        alert("Dados enviados para o Google Sheets com sucesso!");
+      } else {
+        alert("Erro ao enviar os dados.");
+      }
+    } catch (error) {
+      alert("Falha ao conectar com o servidor.");
+    }
   };
 
   return (
@@ -82,10 +94,7 @@ export default function EscalaMedicos() {
         className="border p-2 w-full mb-2"
       />
       <Select
-        options={[
-          { label: "Preenchimento", value: "Preenchimento" },
-          { label: "Alteração", value: "Alteração" }
-        ]}
+        options={[{ label: "Preenchimento", value: "Preenchimento" }, { label: "Alteração", value: "Alteração" }]}
         onChange={(selected) => setTipoPreenchimento(selected.value)}
         className="w-full mb-4"
         placeholder="Selecione o tipo de preenchimento"
