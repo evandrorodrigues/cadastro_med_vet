@@ -14,9 +14,8 @@ const horariosLista = [
 
 export default function EscalaMedicos() {
   const [medico, setMedico] = useState("");
-  const [cnpj, setCnpj] = useState("");
   const [coordenacao, setCoordenacao] = useState("");
-  const [tipoSolicitacao, setTipoSolicitacao] = useState("");
+  const [tipoPreenchimento, setTipoPreenchimento] = useState("");
   const [unidades, setUnidades] = useState([]);
   const [observacoes, setObservacoes] = useState("");
 
@@ -53,14 +52,14 @@ export default function EscalaMedicos() {
   };
 
   const enviarDados = async () => {
-    if (!medico || !cnpj || !coordenacao || !tipoSolicitacao || unidades.length === 0) {
+    if (!medico || !coordenacao || !tipoPreenchimento || unidades.length === 0) {
       alert("Preencha todos os campos obrigatórios!");
       return;
     }
     await fetch("https://seu-backend.onrender.com/api/enviar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ medico, cnpj, coordenacao, tipoSolicitacao, unidades, observacoes })
+      body: JSON.stringify({ medico, coordenacao, tipoPreenchimento, unidades, observacoes })
     });
     alert("Dados enviados com sucesso!");
   };
@@ -77,24 +76,20 @@ export default function EscalaMedicos() {
       />
       <input
         type="text"
-        placeholder="CNPJ do Médico"
-        value={cnpj}
-        onChange={(e) => setCnpj(e.target.value)}
-        className="border p-2 w-full mb-2"
-      />
-      <input
-        type="text"
         placeholder="Coordenação"
         value={coordenacao}
         onChange={(e) => setCoordenacao(e.target.value)}
         className="border p-2 w-full mb-2"
       />
       <Select
-        options={[{ label: "Disponibilidade", value: "Disponibilidade" }, { label: "Alteração", value: "Alteração" }, { label: "Cancelamento", value: "Cancelamento" }]}
-        onChange={(selected) => setTipoSolicitacao(selected.value)}
+        options={[{ label: "Preenchimento", value: "Preenchimento" }, { label: "Alteração", value: "Alteração" }]}
+        onChange={(selected) => setTipoPreenchimento(selected.value)}
         className="w-full mb-4"
-        placeholder="Selecione o tipo de solicitação"
+        placeholder="Selecione o tipo de preenchimento"
       />
+      <button onClick={addUnidade} className="bg-green-500 text-white px-4 py-2 rounded mb-4">
+        Adicionar Unidade
+      </button>
       {unidades.map((unidade, uIndex) => (
         <div key={uIndex} className="mb-4 p-4 border w-full">
           <div className="flex justify-between items-center">
@@ -110,7 +105,6 @@ export default function EscalaMedicos() {
             <div key={dIndex} className="flex gap-2 my-2">
               <input
                 type="date"
-                min={new Date().toISOString().split("T")[0]}
                 value={dia.data}
                 onChange={(e) => updateData(uIndex, dIndex, "data", e.target.value)}
                 className="border p-2"
@@ -129,9 +123,6 @@ export default function EscalaMedicos() {
           </button>
         </div>
       ))}
-      <button onClick={addUnidade} className="bg-green-500 text-white px-4 py-2 rounded mb-4">
-        Adicionar Unidade
-      </button>
       <textarea
         placeholder="Observações"
         value={observacoes}
@@ -144,3 +135,4 @@ export default function EscalaMedicos() {
     </div>
   );
 }
+
